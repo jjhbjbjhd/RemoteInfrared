@@ -1,26 +1,50 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <WorkBench />
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
-export default {
+import { defineComponent } from 'vue';
+import WorkBench from './views/WorkBench.vue';
+export default defineComponent({
+  components: { 
+    WorkBench
+  },
   name: 'App',
-  components: {
-    HelloWorld
+  props: {},
+  setup() {
+    return {};
   }
-}
+});
+
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+<style lang="less">
+@import './assets/font/font.css';
+
+html,
+body,
+#app,
+
+body {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  font-family: lato, pingfangsc-regular, 'Microsoft YaHei', sans-serif, 'San Francisco';
+  // background-color: var(--o-white);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  // color: var(--o-black);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+input {
+  font-family: lato, pingfangsc-regular, 'Microsoft YaHei', 'San Francisco', sans-serif;
 }
 </style>

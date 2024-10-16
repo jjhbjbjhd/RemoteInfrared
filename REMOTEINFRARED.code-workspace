@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "REMOTEINFRARED",
+			"path": ".."
+		},
+		{
+			"name": "winCodeSign-2.6.0",
+			"path": "../../../Downloads/winCodeSign-2.6.0"
+		}
+	],
+	"settings": {}
+}
