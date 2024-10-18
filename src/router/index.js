@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import Temperature from '../views/temperature/temperature.vue'
 import DualPoint from '../views/dualPoint/dualPoint.vue'
 import Blind from '../views/blind/blind.vue'
+import Dashboard from '../views/dashboard/dashboard.vue'
 import WorkSpace from '@/components/WorkSpace.vue'
 
 const routes = [
@@ -24,6 +25,10 @@ const routes = [
       {
         path: 'blind',
         component: Blind
+      },
+      {
+        path: 'dashboard',
+        component: Dashboard
       }
     ]
   }

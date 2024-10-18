@@ -116,7 +116,7 @@ export default {
   }
 
   .ant-layout-content {
-    height: 80vh;
+    height: 87vh;
     padding: 0;
     margin: 0;
     display: flex;
@@ -148,16 +148,6 @@ export default {
         align-items: center;
         gap: 10px;
       }
-
-      // .added-component {
-      //   width: 90%;
-      //   height: 50px;
-      //   background-color: black;
-      //   color: white;
-      //   display: flex;
-      //   justify-content: center;
-      //   align-items: center;
-      // }
 
       .fade-enter-active, .fade-leave-active {
         transition: all 0.5s;

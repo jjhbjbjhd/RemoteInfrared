@@ -1,103 +1,57 @@
 /**
- * 防抖函数
- * @param { Function } func 被防抖的函数
- * @param { Number } delay 防抖的延迟时间，默认500毫秒
- * @param { Boolean } immediate 是否立即执行，默认false
- * @param { Function } resultCallback 执行结果回调
+ * 计算矩阵的直方图
+ * @param {Array} matrix - 输入矩阵（二维数组）
+ * @param {number} bins - 直方图的区间数量
+ * @returns {Object} - 直方图数据，包括区间和对应的频数
  */
-function debounce(func, delay = 500, immediate = false, resultCallback) {
-    let timer = null
-    let isInvoke = false
-  
-    const _debounce = function (...args) {
-      return new Promise((resolve, reject) => {
-        if (timer) clearTimeout(timer)
-  
-        if (immediate && !isInvoke) {
-          try {
-            const result = func.apply(this, args)
-            if (resultCallback) resultCallback(result)
-            resolve(result)
-          } catch (e) {
-            reject(e)
-          }
-          isInvoke = true
-        } else {
-          timer = setTimeout(() => {
-            try {
-              const result = func.apply(this, args)
-              if (resultCallback) resultCallback(result)
-              resolve(result)
-            } catch (e) {
-              reject(e)
-            }
-            isInvoke = false
-            timer = null
-          }, delay)
-        }
-      })
-    }
-  
-    _debounce.cancel = function () {
-      if (timer) clearTimeout(timer)
-      isInvoke = false
-      timer = null
-    }
-  
-    return _debounce
-  }
-  
-  /**
-   * 节流函数
-   * @param { Function } func 被节流的函数
-   * @param { Number } interval 触发间隔时间
-   * @param { Object } options leading: 是否在开始时触发, trailing: 是否在结束时触发
-   */
-  function throttle(func, interval, options = { leading: true, trailing: true }) {
-    let timer = null
-    let lastTime = 0
-  
-    const _throttle = function (...args) {
-      const nowTime = Date.now()
-      if (!lastTime && !options.leading) lastTime = nowTime
-  
-      const remainTime = interval - (nowTime - lastTime)
-      if (remainTime <= 0) {
-        if (timer) {
-          clearTimeout(timer)
-          timer = null
-        }
-        lastTime = nowTime
-        func.apply(this, args)
-      }
-  
-      if (options.trailing && !timer) {
-        timer = setTimeout(() => {
-          lastTime = options.leading ? Date.now() : 0
-          timer = null
-          func.apply(this, args)
-        }, remainTime)
-      }
-    }
-  
-    _throttle.cancel = function () {
-      if (timer) clearTimeout(timer)
-      timer = null
-      lastTime = 0
-    }
-  
-    return _throttle
-  }
-  
-  /**
-   * 驼峰转换下划线
-   * @param { String } name 驼峰命名的字符串
-   * @returns { String } 下划线命名的字符串
-   */
-  function toLine(name) {
-    return name.replace(/([A-Z])/g, '_$1').toLowerCase()
-  }
+
+import {flatten, min, max,subtract,sum,dotDivide,multiply} from 'mathjs';
+function calculateHistogram(matrix, bins=150) {
+  // 将矩阵展开为一维数组
+  const flatArray = flatten(matrix);
+
+  // 找到数据的最小值和最大值
+  const minValue = min(flatArray);
+  const maxValue = max(flatArray);
+
+  // 计算每个区间的宽度
+  const binWidth = (maxValue - minValue) / bins;
+
+  // 初始化直方图数组
+  const histogram = Array(bins).fill(0);
+  const binEdges = Array.from({ length: bins + 1 }, (_, i) => minValue + i * binWidth);
+
+  // 遍历数据，将值归入相应区间
+  flatArray.forEach(value => {
+    const binIndex = Math.min(Math.floor((value - minValue) / binWidth), bins - 1);
+    histogram[binIndex]++;
+  });
+
+  // 返回区间和对应的频数
+  return { binEdges, histogram};
+}
+
+function calculateNETD(respMatrix, noiseMatrix){
+  const diffT = 35 - 20;
+  const netdMatrix = multiply(dotDivide(noiseMatrix,respMatrix),diffT);
+  const netd = sum(netdMatrix)/(netdMatrix.length*netdMatrix[0].length);
+  return {netdMatrix,netd};
+}
+
+function calculateResponsive(matrixHigh, matrixLow){
+  const respMatrix = subtract(matrixHigh, matrixLow);
+  const resp = sum(respMatrix)/(respMatrix.length*respMatrix[0].length);
+  return {respMatrix, resp};
+}
+
+function calculateNoise(matrixLow){
+
+  const noise = sum(matrixLow) / (matrixLow.length * matrixLow[0].length);
+  return noise;
+}
+
+
   
   // 导出函数
-  export { debounce, throttle, toLine }
+export { calculateHistogram, calculateNETD, calculateResponsive, calculateNoise}
   

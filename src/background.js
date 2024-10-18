@@ -13,8 +13,8 @@ async function createWindow() {
   const win = new BrowserWindow({
     width: 1000,
     minWidth:1000,
-    height: 650,
-    minHeight: 650,
+    height: 1000,
+    minHeight: 1000,
     frame: false, // 隐藏标题栏
     webPreferences: {
       devTools: isDevelopment, // 开发环境下才能打开控制台

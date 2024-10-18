@@ -28,6 +28,7 @@
           { title: 'Temperature', path: '/temperature', icon: 'icon-shezhi' },
           { title: 'Dual Point', path: '/dualPoint', icon: 'icon-shezhi' },
           { title: 'Blind', path: '/blind', icon: 'icon-shezhi' },
+          {title: 'GB', path: '/dashboard', icon: 'icon-shezhi' },
       ]);
       
       const clickSidebar = (path) => {
