@@ -41,10 +41,8 @@
   
   <script>
   import { ref } from 'vue';
-  import {calculateHistogram, calculateNETD, calculateResponsive} from '@/utils/index';
+  import {calculateHistogram, calculateNETD, calculateResponsive,parseContentToArray, readFileAsText,setChartOptions} from '@/utils/index';
   import InfraredCharts from '@/components/InfraredCharts.vue'
-   
-  
   export default {
     name: 'DashboardView',
     components:{
@@ -55,10 +53,6 @@
       const expandedKeys = ref([]);
       const selectedKeys = ref([]);
       const treeData = ref([]);
-      const tMatrix = ref({
-        low:[],
-        high:[]
-      })
   
       const noiseOptions = ref({});
       const responsiveOptions = ref({});
@@ -71,33 +65,38 @@
       const selectDirectory = (event) => {
         const files = event.target.files;
         const tree = {};
-        const targetFiles = ["Test-Result", "低温均值_V.txt", "高温均值_V.txt"];
+        const targetFiles = ["Test-Result", "低温均值_V.txt", "高温均值_V.txt", "像元噪声均值_V.txt"];
+
+        for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            const parts = file.webkitRelativePath.split('/');
+            if (!targetFiles.includes(file.name)) continue;
+            const findTestResult = parts.findIndex(part => part.startsWith("Test-Result"));
+            if (findTestResult <= 0) continue;          
+            const newParts = parts.slice(findTestResult - 1,4).filter(item => !targetFiles.includes(item));
   
-        for (const file of files) {
-          const parts = file.webkitRelativePath.split('/');
-          if (!targetFiles.includes(file.name)) continue;
-  
-          const findTestResult = parts.findIndex(part => part.startsWith("Test-Result"));
-          if (findTestResult <= 0) continue;
-          const newParts = parts.filter(item => !targetFiles.includes(item)).slice(findTestResult - 1);
-  
-          let current = tree;
-          newParts.forEach((part, index) => {
-            if (!current[part]) {
-              current[part] = {
-                key: newParts.slice(0, index + 1).join('___'),
-                title: part,
-                children: {},
-              };
-            }
-            current = current[part].children;
-          });
+            let current = tree;
+            
+            newParts.forEach((part, idx) => {
+                if (!current[part]) {
+                    current[part] = {
+                        key: newParts.slice(0, idx + 1).join('___'),
+                        title: part,
+                        fileInputIdxList:[index],
+                        children: {}
+                    };
+                }else{
+                    current[part].fileInputIdxList = Array.from(new Set([...current[part].fileInputIdxList, index]));
+                }
+                current = current[part].children;
+            });
         }
-  
+
         const convertTree = (tree) => {
-          return Object.values(tree).map(({ title, key, children }) => ({
+          return Object.values(tree).map(({ title, key,fileInputIdxList, children }) => ({
             title,
             key,
+            fileInputIdxList,
             children: convertTree(children),
             isLeaf: Object.keys(children).length === 0,
           }));
@@ -105,97 +104,44 @@
         treeData.value = convertTree(tree);
         expandedKeys.value = treeData.value.map(item => item.key); // 展开根节点
       };
-      const readFileAsText = (file) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.onerror = (e) => reject(e);
-          reader.readAsText(file);
-        });
-      };
-  
-      const parseContentToArray = (content) => {
-        return content
-          .trim()                    // 去除前后空白字符
-          .split(/\n+/)              // 按换行符分割成多行
-          .map(line => 
-            line.trim()              // 去除每行的前后空白字符
-              .split(/\s+/)         // 按空格或制表符分割每行
-              .map(Number)          // 将字符串转换为数字
-          );
-      };
-      
-      const setChartOptions = (title,data) => {
-        const defaultOptions = {
-            title: {
-              text: title,
-              left:20
-            },
-            toolbox:{
-              feature:{
-                dataZoom:{yAxisIndex:false},
-                saveAsImage:{pixelRatio:2}
-              }
-            },
-            tooltip: {
-              trigger: 'axis',
-              axisPointer: {type: 'shadow'}
-            },
-            grid: {bottom:90},
-            dataZoom:[{type: 'inside'},{type: 'slider'}],
-            xAxis: [
-              {
-                data: data.binEdges,
-                silent: false,
-                splitLine: { show:false},
-                splitArea: {show: false},
-                axisLabel: {
-                  formatter:function (value){return Number(value).toFixed(4)}
-                }
-              }
-            ],
-            yAxis: [{
-              splitArea: {show: false}
-            }],
-            series: [
-              {
-                type: 'bar',
-                barWidth: '60%',
-                data: data.histogram
-              }
-            ]
-        };
-        return defaultOptions;
-        
-      };
-  
-  
+ 
+    
+
       const handleSelect = async  (selectedKeys, info) => {
+
         if(info.node.dataRef.isLeaf) {
-          const keyList = selectedKeys[0].split('___');
-          const highKeyList = [...keyList,'高温均值_V.txt'];
-          const lowKeyList = [...keyList,'低温均值_V.txt'];
-          const fileInputList = [...fileInput.value.files]
-          const highTxt = fileInputList.find(f => highKeyList.every(ele=>f.webkitRelativePath.split('/').includes(ele)));
-          const lowTxt = fileInputList.find(f => lowKeyList.every(ele=>f.webkitRelativePath.split('/').includes(ele)));
-  
-          if(!highTxt || !lowTxt) return;
-  
-          try {
-            // 使用封装的readFileAsText函数读取文件
-            tMatrix.value.high = parseContentToArray(await readFileAsText(highTxt));
-            tMatrix.value.low = parseContentToArray(await readFileAsText(lowTxt));
-            console.log('File contents:', tMatrix.value);
-          } catch (error) {
-            console.error('Error reading files:', error);
-          }
-          const { respMatrix} = calculateResponsive(tMatrix.value.high,tMatrix.value.low)
+
+            const readTxtList = info.node.dataRef.fileInputIdxList;
+            if(readTxtList.length < 3) return;
+            const highMatrix = [];
+            const lowMatrix = [];
+            let noiseMatrix = [];
+            
+            try {
+                for (const idx of readTxtList) {
+                    const file = fileInput.value.files[idx];
+                    const fileName = file.name;
+                    if(fileName === '高温均值_V.txt'&& !highMatrix.length){
+                        highMatrix.push(parseContentToArray(await readFileAsText(file)));
+                    }else if(fileName === '低温均值_V.txt'&& !lowMatrix.length){
+                        lowMatrix.push(parseContentToArray(await readFileAsText(file)));
+                    }else if(fileName === '像元噪声均值_V.txt'&& !noiseMatrix.length){
+                        noiseMatrix.push(parseContentToArray(await readFileAsText(file)));
+                    }
+                }
+                
+            } catch (error) {
+                return
+            }
+
+            if(!highMatrix.length || !lowMatrix.length || !noiseMatrix.length) return;
+
+          const { respMatrix} = calculateResponsive(highMatrix,lowMatrix)
           // const noise = calculateNoise(tMatrix.value.low)
-          const {netdMatrix} = calculateNETD(respMatrix, tMatrix.value.low)
-  
-          const noiseHis = calculateHistogram(tMatrix.value.low, 500);
-          const respHis = calculateHistogram(respMatrix,500);
-          const netdHis = calculateHistogram(netdMatrix,500);
+          const {netdMatrix} = calculateNETD(respMatrix, noiseMatrix)
+          const respHis = calculateHistogram(respMatrix,500,[0.200,0.5]);
+          const noiseHis = calculateHistogram(noiseMatrix, 500,[0.0001,0.001]);
+          const netdHis = calculateHistogram(netdMatrix,500,[0,0.05]);
           noiseOptions.value = setChartOptions('噪声直方图',noiseHis);
           netdOptions.value = setChartOptions("NETD直方图",netdHis);
           responsiveOptions.value = setChartOptions("响应直方图",respHis);

@@ -8,7 +8,7 @@
         @click="clickSidebar(item.path)"
         :title="item.title">
         <!-- <DotChartOutlined /> -->
-        <i :class="['iconfont', item.icon]"></i>
+        <!-- <i :class="['iconfont', item.icon]"></i> -->
         <span class="menu-title">{{ item.title }}</span>
       </li>
     </ul>
@@ -25,10 +25,10 @@
       const activeMenuitem = ref('/temperature');
 
       const workspaceList = ref([
-          { title: 'Temperature', path: '/temperature', icon: 'icon-shezhi' },
+          { title: '温度', path: '/temperature', icon: 'icon-shezhi' },
           { title: 'Dual Point', path: '/dualPoint', icon: 'icon-shezhi' },
-          { title: 'Blind', path: '/blind', icon: 'icon-shezhi' },
-          {title: 'GB', path: '/dashboard', icon: 'icon-shezhi' },
+          { title: '盲元', path: '/blind', icon: 'icon-shezhi' },
+          {title: '国标', path: '/dashboard', icon: 'icon-shezhi' },
       ]);
       
       const clickSidebar = (path) => {
@@ -81,25 +81,26 @@ li {
   }
 
   .menu-title {
-    display: none;
+    font-weight: bold;
+    // display: none;
     font-size: 12px;
     letter-spacing: 1px;
     color: #1C1C1C;
   }
   
-  &:hover {
-    background-color: #e6e6e6;
-    font-weight: bold;
-    border-left: 2px solid #40b883;
-  }
+  // &:hover {
+  //   background-color: #e6e6e6;
+  //   font-weight: bold;
+  //   border-left: 2px solid #40b883;
+  // }
   
-  &:hover .iconfont {
-    display: none;
-  }
+  // &:hover .iconfont {
+  //   display: none;
+  // }
   
-  &:hover .menu-title {
-    display: inline-block;
-  }
+  // &:hover .menu-title {
+  //   display: inline-block;
+  // }
 }
 
 .active-item {
